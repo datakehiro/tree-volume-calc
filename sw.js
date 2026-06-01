@@ -1,4 +1,4 @@
-const CACHE = 'rikkuzaiseki-v2';
+const CACHE = 'rikkuzaiseki-v3';
 const FILES = ['./', './index.html', './manifest.json', './icon.svg', './favicon.png'];
 
 self.addEventListener('install', e => {
