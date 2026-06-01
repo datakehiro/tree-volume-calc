@@ -79,7 +79,7 @@
     <input type="text" id="mgmtNo" placeholder="例: T-001">
 
     <label>樹高（m）</label>
-    <input type="number" id="height" placeholder="例: 15" min="2" max="32" step="1">
+    <input type="number" id="height" placeholder="例: 15" min="2" max="32" step="1" oninput="lookup()">
 
     <div class="tab-row" style="margin-top:12px;">
       <div class="tab" id="tab-dbh" onclick="switchTab('dbh')">胸高直径(cm)を入力</div>
@@ -88,23 +88,23 @@
 
     <div id="panel-dbh" class="hidden">
       <label>胸高直径（cm）</label>
-      <input type="number" id="dbh" placeholder="例: 24" min="10" max="80" step="2">
+      <input type="number" id="dbh" placeholder="例: 24" min="10" max="80" step="2" oninput="lookup()">
     </div>
 
     <div id="panel-circ">
       <label>胸高幹周（cm）</label>
-      <input type="number" id="circ" placeholder="例: 75.4" step="0.1" oninput="calcDbhFromCirc()">
+      <input type="number" id="circ" placeholder="例: 75.4" step="0.1" oninput="calcDbhFromCirc(); lookup()">
       <div class="calc-note" id="circ-result">→ 胸高直径：（未入力）</div>
       <span class="settings-toggle" onclick="toggleSettings()">⚙ 計算設定</span>
       <div id="settings-panel" class="settings-panel hidden">
         <div class="settings-row">
           <div>
             <label>除数（π相当値）</label>
-            <input type="number" id="piVal" value="3.14159" step="0.00001" oninput="calcDbhFromCirc()">
+            <input type="number" id="piVal" value="3.14159" step="0.00001" oninput="calcDbhFromCirc(); lookup()">
           </div>
           <div>
             <label>FLOOR の単位（cm）</label>
-            <input type="number" id="floorUnit" value="2" step="1" min="1" oninput="calcDbhFromCirc()">
+            <input type="number" id="floorUnit" value="2" step="1" min="1" oninput="calcDbhFromCirc(); lookup()">
           </div>
         </div>
         <div class="calc-note" style="margin-top:6px;">計算式: FLOOR( 幹周 ÷ 除数, 単位 )</div>
@@ -112,11 +112,10 @@
     </div>
 
     <label>係数（総材積 = 幹材積 × 係数）</label>
-    <input type="number" id="coeff" value="1.2" step="0.01" min="0.01" placeholder="例: 1.2">
-
-    <button onclick="lookup()">材積を計算</button>
+    <input type="number" id="coeff" value="1.2" step="0.01" min="0.01" placeholder="例: 1.2" oninput="lookup()">
 
     <div id="result"></div>
+    <button onclick="saveLog()" id="recordBtn" style="display:none;">この結果を記録する</button>
   </div>
 
   <div class="card">
@@ -221,14 +220,18 @@ function findNearest(arr, val) {
   return arr.reduce((a, b) => Math.abs(b - val) < Math.abs(a - val) ? b : a);
 }
 
+let lastResult = null;
+
 function lookup() {
   const h = parseFloat(document.getElementById('height').value);
   const d = getDbh();
-  const mgmt = document.getElementById('mgmtNo').value.trim();
   const resultEl = document.getElementById('result');
+  const recordBtn = document.getElementById('recordBtn');
 
   if (isNaN(h) || isNaN(d) || d <= 0) {
-    resultEl.innerHTML = '<div class="result-box error">樹高と胸高直径（または胸高幹周）を入力してください。</div>';
+    resultEl.innerHTML = '';
+    recordBtn.style.display = 'none';
+    lastResult = null;
     return;
   }
 
@@ -239,11 +242,10 @@ function lookup() {
 
   if (vol === undefined) {
     resultEl.innerHTML = `<div class="result-box error">該当する材積データがありません。<br>（樹高 ${nearH}m / 胸高直径 ${nearD}cm の組み合わせ）</div>`;
+    recordBtn.style.display = 'none';
+    lastResult = null;
     return;
   }
-
-  const warned = (nearH !== Math.round(h) || nearD !== d) ?
-    `<div style="font-size:0.78em;color:#777;margin-top:6px;">※ 表の最近傍値を使用: 樹高 ${nearH}m / 胸高直径 ${nearD}cm</div>` : '';
 
   const coeff = parseFloat(document.getElementById('coeff').value) || 1;
   const total = Math.round(vol * coeff * 1000) / 1000;
@@ -252,6 +254,9 @@ function lookup() {
         <div style="font-size:0.85em;color:#777;">総材積（× ${coeff}）</div>
         <div style="font-size:2.2em;font-weight:bold;color:#2d5a27;">${total} <span style="font-size:0.45em;">m³</span></div>
        </div>` : '';
+
+  const warned = (nearH !== Math.round(h) || nearD !== d) ?
+    `<div style="font-size:0.78em;color:#777;margin-top:6px;">※ 表の最近傍値を使用: 樹高 ${nearH}m / 胸高直径 ${nearD}cm</div>` : '';
 
   resultEl.innerHTML = `
     <div class="result-box">
@@ -263,7 +268,14 @@ function lookup() {
       ${warned}
     </div>`;
 
-  // ログに追記
+  recordBtn.style.display = 'block';
+  lastResult = { h: nearH, d: nearD, vol, coeff, total };
+}
+
+function saveLog() {
+  if (!lastResult) return;
+  const { h, d, vol, coeff, total } = lastResult;
+  const mgmt = document.getElementById('mgmtNo').value.trim();
   const now = new Date();
   const ts = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'});
   const mgmtStr = mgmt ? `[${mgmt}] ` : '';
@@ -273,7 +285,7 @@ function lookup() {
     circStr = ` (幹周${circ}cm→直径${d}cm)`;
   }
   const totalStr = coeff !== 1 ? ` 総材積:${total}m³(×${coeff})` : '';
-  const line = `${ts} ${mgmtStr}樹高:${nearH}m 胸高直径:${nearD}cm${circStr} → 幹材積:${vol}m³${totalStr}`;
+  const line = `${ts} ${mgmtStr}樹高:${h}m 胸高直径:${d}cm${circStr} → 幹材積:${vol}m³${totalStr}`;
   logLines.push(line);
   localStorage.setItem('volumeLog', JSON.stringify(logLines));
   renderLog();
