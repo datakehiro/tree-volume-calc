@@ -71,7 +71,7 @@
 <body>
 <div class="container">
   <h1>🌲 幹材積計算アプリ</h1>
-  <div class="version">v1.4</div>
+  <div class="version">v1.5</div>
 
   <div class="card">
     <h2>計測値の入力</h2>
@@ -111,8 +111,16 @@
       </div>
     </div>
 
-    <label>係数（総材積 = 幹材積 × 係数）</label>
-    <input type="number" id="coeff" value="1.2" step="0.01" min="0.01" placeholder="例: 1.2" oninput="lookup()">
+    <div class="settings-row">
+      <div>
+        <label>係数（総材積 = 幹材積 × 係数）</label>
+        <input type="number" id="coeff" value="1.2" step="0.01" min="0.01" placeholder="例: 1.2" oninput="lookup()">
+      </div>
+      <div>
+        <label>総材積の小数点以下桁数</label>
+        <input type="number" id="decimalPlaces" value="2" step="1" min="0" max="6" oninput="lookup()">
+      </div>
+    </div>
 
     <div id="result"></div>
     <button onclick="saveLog()" id="recordBtn" style="display:none;">この結果を記録する</button>
@@ -248,7 +256,9 @@ function lookup() {
   }
 
   const coeff = parseFloat(document.getElementById('coeff').value) || 1;
-  const total = Math.round(vol * coeff * 1000) / 1000;
+  const dp = parseInt(document.getElementById('decimalPlaces').value) ?? 2;
+  const factor = Math.pow(10, dp);
+  const total = Math.floor(vol * coeff * factor) / factor;
   const coeffStr = coeff !== 1
     ? `<div style="font-size:0.85em;color:#555;margin-top:10px;border-top:1px solid #c8e0c4;padding-top:10px;">
         <div style="font-size:0.85em;color:#777;">総材積（× ${coeff}）</div>
@@ -269,7 +279,7 @@ function lookup() {
     </div>`;
 
   recordBtn.style.display = 'block';
-  lastResult = { h: nearH, d: nearD, vol, coeff, total };
+  lastResult = { h: nearH, d: nearD, vol, coeff, total, dp };
 }
 
 function saveLog() {
