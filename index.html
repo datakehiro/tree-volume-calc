@@ -111,7 +111,10 @@
       </div>
     </div>
 
-    <button onclick="lookup()">幹材積を検索</button>
+    <label>係数（総材積 = 幹材積 × 係数）</label>
+    <input type="number" id="coeff" value="1.2" step="0.01" min="0.01" placeholder="例: 1.2">
+
+    <button onclick="lookup()">材積を計算</button>
 
     <div id="result"></div>
   </div>
@@ -242,12 +245,21 @@ function lookup() {
   const warned = (nearH !== Math.round(h) || nearD !== d) ?
     `<div style="font-size:0.78em;color:#777;margin-top:6px;">※ 表の最近傍値を使用: 樹高 ${nearH}m / 胸高直径 ${nearD}cm</div>` : '';
 
+  const coeff = parseFloat(document.getElementById('coeff').value) || 1;
+  const total = Math.round(vol * coeff * 1000) / 1000;
+  const coeffStr = coeff !== 1
+    ? `<div style="font-size:0.85em;color:#555;margin-top:10px;border-top:1px solid #c8e0c4;padding-top:10px;">
+        <div style="font-size:0.85em;color:#777;">総材積（× ${coeff}）</div>
+        <div style="font-size:1.6em;font-weight:bold;color:#2d5a27;">${total} <span style="font-size:0.6em;">m³</span></div>
+       </div>` : '';
+
   resultEl.innerHTML = `
     <div class="result-box">
       <div class="label">幹材積</div>
       <div class="value">${vol}</div>
       <div class="unit">m³</div>
       <div style="font-size:0.8em;color:#555;margin-top:6px;">樹高 ${nearH}m ／ 胸高直径 ${nearD}cm</div>
+      ${coeffStr}
       ${warned}
     </div>`;
 
@@ -260,7 +272,8 @@ function lookup() {
     const circ = parseFloat(document.getElementById('circ').value);
     circStr = ` (幹周${circ}cm→直径${d}cm)`;
   }
-  const line = `${ts} ${mgmtStr}樹高:${nearH}m 胸高直径:${nearD}cm${circStr} → 材積:${vol}m³`;
+  const totalStr = coeff !== 1 ? ` 総材積:${total}m³(×${coeff})` : '';
+  const line = `${ts} ${mgmtStr}樹高:${nearH}m 胸高直径:${nearD}cm${circStr} → 幹材積:${vol}m³${totalStr}`;
   logLines.push(line);
   localStorage.setItem('volumeLog', JSON.stringify(logLines));
   renderLog();
