@@ -1,0 +1,17 @@
+{
+  "name": "立木材積",
+  "short_name": "立木材積",
+  "description": "胸高直径と樹高から幹材積を検索するアプリ",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f0f4f0",
+  "theme_color": "#2d5a27",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

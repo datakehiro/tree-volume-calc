@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#2d5a27"/>
+  <!-- 木のシルエット -->
+  <polygon points="256,60 340,200 300,200 370,310 290,310 310,380 202,380 222,310 142,310 212,200 172,200" fill="#7ab870"/>
+  <rect x="230" y="380" width="52" height="50" rx="4" fill="#5a3a1a"/>
+  <!-- テキスト -->
+  <text x="256" y="468" font-family="'Hiragino Sans','Meiryo',sans-serif" font-size="56" font-weight="bold" fill="white" text-anchor="middle" letter-spacing="2">立木材積</text>
+</svg>

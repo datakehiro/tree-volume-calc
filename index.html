@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>幹材積計算アプリ</title>
+<title>立木材積</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2d5a27">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="立木材積">
+<link rel="apple-touch-icon" href="icon.svg">
 <style>
   body { font-family: 'Meiryo', sans-serif; background: #f0f4f0; margin: 0; padding: 20px; }
   .container { max-width: 600px; margin: 0 auto; }
@@ -276,6 +282,10 @@ function clearLog() {
 
 // 初期化
 renderLog();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
 </script>
 </body>
 </html>
