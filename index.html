@@ -52,11 +52,18 @@
     border: 1px solid #ccc; border-radius: 6px; font-size: 0.85em; background: #f5f5f5; }
   .tab.active { background: #2d5a27; color: white; border-color: #2d5a27; }
   .hidden { display: none; }
+  .version { text-align: center; font-size: 0.75em; color: #999; margin-top: -14px; margin-bottom: 16px; }
+  .settings-toggle { font-size: 0.8em; color: #6a9f64; cursor: pointer; text-decoration: underline; margin-top: 10px; display: inline-block; }
+  .settings-panel { background: #f5faf4; border: 1px solid #c8e0c4; border-radius: 8px; padding: 12px; margin-top: 10px; }
+  .settings-panel label { margin-top: 8px; }
+  .settings-row { display: flex; gap: 10px; }
+  .settings-row > div { flex: 1; }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>🌲 幹材積計算アプリ</h1>
+  <div class="version">v1.1</div>
 
   <div class="card">
     <h2>計測値の入力</h2>
@@ -80,6 +87,20 @@
       <label>胸高幹周（cm）</label>
       <input type="number" id="circ" placeholder="例: 75.4" step="0.1" oninput="calcDbhFromCirc()">
       <div class="calc-note" id="circ-result">→ 胸高直径：（未入力）</div>
+      <span class="settings-toggle" onclick="toggleSettings()">⚙ 計算設定</span>
+      <div id="settings-panel" class="settings-panel hidden">
+        <div class="settings-row">
+          <div>
+            <label>除数（π相当値）</label>
+            <input type="number" id="piVal" value="3.14159" step="0.00001" oninput="calcDbhFromCirc()">
+          </div>
+          <div>
+            <label>FLOOR の単位（cm）</label>
+            <input type="number" id="floorUnit" value="2" step="1" min="1" oninput="calcDbhFromCirc()">
+          </div>
+        </div>
+        <div class="calc-note" style="margin-top:6px;">計算式: FLOOR( 幹周 ÷ 除数, 単位 )</div>
+      </div>
     </div>
 
     <button onclick="lookup()">幹材積を検索</button>
@@ -158,6 +179,11 @@ function switchTab(tab) {
   document.getElementById('panel-circ').className = tab==='circ' ? '' : 'hidden';
 }
 
+function toggleSettings() {
+  const p = document.getElementById('settings-panel');
+  p.classList.toggle('hidden');
+}
+
 function calcDbhFromCirc() {
   const circ = parseFloat(document.getElementById('circ').value);
   const el = document.getElementById('circ-result');
@@ -165,8 +191,10 @@ function calcDbhFromCirc() {
     el.textContent = '→ 胸高直径：（未入力）';
     return null;
   }
-  const dbh = Math.floor(circ / 3.14159 / 2) * 2;  // FLOOR(circ/3.14159, 2)
-  el.textContent = `→ 胸高直径：${dbh} cm（= FLOOR(${circ}/3.14159, 2)）`;
+  const piVal = parseFloat(document.getElementById('piVal').value) || 3.14159;
+  const unit = parseFloat(document.getElementById('floorUnit').value) || 2;
+  const dbh = Math.floor(circ / piVal / unit) * unit;
+  el.textContent = `→ 胸高直径：${dbh} cm（= FLOOR(${circ}/${piVal}, ${unit})）`;
   return dbh;
 }
 
